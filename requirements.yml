@@ -1,0 +1,23 @@
+name: venv
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - jupyter
+  - python-dotenv
+  - matplotlib
+  - networkx
+  - pip
+  - pip:
+      - langchain>=0.2.0
+      - langchain-openai>=0.1.7
+      - langchain-community>=0.2.6
+      - scipy
+      - langchain-chroma
+      - langchain-huggingface
+      - flask
+      - streamlit
+      - streamlit_extras
+      - google-cloud-texttospeech
+      - google-cloud-speech
+      - audio-recorder-streamlit
