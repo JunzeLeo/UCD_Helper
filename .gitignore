@@ -1,0 +1,32 @@
+# exp_data
+exp_data/*
+
+# Python
+*.pyc
+__pycache__/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Flask
+instance/
+.webassets-cache
+
+# Streamlit
+.streamlit/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Miscellaneous
+.DS_Store
+
+# Env files
+.env
