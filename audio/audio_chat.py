@@ -22,14 +22,14 @@ if "need_analysis" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "analysis" not in st.session_state:
-    st.session_state["analysis"] = {
-        x:[] for x in ["HEAR, SEE, SAY, DO, THINK & FEEL"]
-    }
+    st.session_state["analysis"] = {x: [] for x in ["HEAR, SEE, SAY, DO, THINK & FEEL"]}
+
 
 def display_all_messages():
     with chat_history_block:
         for message in st.session_state.messages:
             st.chat_message(name=message["role"]).write(message["content"])
+
 
 with st.sidebar:
     user_id = st.text_input(
@@ -71,18 +71,18 @@ if __name__ == "__main__":
             "Please click the microphone button to start conversation. Start talking when the microphone turns red. You may start the conversation with greetings like '你好' or 'Hello' to the chatbot."
         )
         st.info("Please speak in English.")
-        audio_bytes = audio_recorder(sample_rate=44100, pause_threshold=1, auto_start=False)
-        
+        audio_bytes = audio_recorder(
+            sample_rate=44100, pause_threshold=1, auto_start=False
+        )
+
     if audio_bytes:
         if not hasattr(st.session_state, "file_index"):
             st.session_state.file_index = 1
         file_index = st.session_state.file_index
         # save to file and transcribe (auto increment file name by 1)
-        with open(
-                os.path.join(DATA_DIR, user_id, f"{file_index}.wav"), "wb"
-            ) as f:
-                f.write(audio_bytes)
-        
+        with open(os.path.join(DATA_DIR, user_id, f"{file_index}.wav"), "wb") as f:
+            f.write(audio_bytes)
+
         response = transcribe_file_with_auto_punctuation(audio_bytes)
         first_alternative = (
             response.results[0].alternatives[0].transcript
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
         with chat_history_block:
             st.chat_message(name="user").write(first_alternative)
-        
+
         # update to session state
         st.session_state.messages.append(
             {
@@ -102,14 +102,15 @@ if __name__ == "__main__":
         )
         st.session_state.file_index += 1
         st.session_state["need_analysis"] = True
-        # Do analysis
-        analysis_result = chain_with_message_history.invoke(
-            {"input": first_alternative},
-            {"configurable": {"session_id": session_id}},
-        )
 
         # Display analysis result
         with analysis_block:
+            with st.spinner("System Processing..."):
+                # Do analysis
+                analysis_result = chain_with_message_history.invoke(
+                    {"input": first_alternative},
+                    {"configurable": {"session_id": session_id}},
+                )
             st.write(analysis_result)
 
         # update to analysis in session state
