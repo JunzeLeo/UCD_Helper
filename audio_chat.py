@@ -1,8 +1,10 @@
 import os
+
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
-from google_ASR import transcribe_file_with_auto_punctuation
-from audio.utils import chain_with_message_history
+
+from audio.google_ASR import transcribe_file_with_auto_punctuation
+from audio.utils import chain_with_summarization
 
 st.title("History Helper")
 DATA_DIR = "exp_data"
@@ -22,7 +24,9 @@ if "need_analysis" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "analysis" not in st.session_state:
-    st.session_state["analysis"] = {x: [] for x in ["HEAR, SEE, SAY, DO, THINK & FEEL"]}
+    st.session_state["analysis"] = {
+        x: [] for x in ["hear", "see", "say", "do", "think", "feel"]
+    }
 
 
 def display_all_messages():
@@ -61,7 +65,7 @@ if __name__ == "__main__":
             "Please input your Session ID on the left pane to start conversation. Format: (\w+)_(\d)"
         )
         st.stop()
-    st.session_state["session_id"] = session_id
+    # st.session_state["session_id"] = session_id
     if not os.path.exists(os.path.join(DATA_DIR, user_id)):
         os.makedirs(os.path.join(DATA_DIR, user_id))
 
@@ -107,7 +111,7 @@ if __name__ == "__main__":
         with analysis_block:
             with st.spinner("System Processing..."):
                 # Do analysis
-                analysis_result = chain_with_message_history.invoke(
+                analysis_result = chain_with_summarization.invoke(
                     {"input": first_alternative},
                     {"configurable": {"session_id": session_id}},
                 )

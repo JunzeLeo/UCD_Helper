@@ -9,6 +9,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
+    PromptTemplate,
+    SystemMessagePromptTemplate,
 )
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables.history import (
@@ -70,9 +72,9 @@ class UserCenteredDesignNotes(BaseModel):
     )
 
 
-notes_parser = JsonOutputParser(UserCenteredDesignNotes)
+notes_parser = JsonOutputParser(pydantic_object=UserCenteredDesignNotes)
 
-system_message = "The user-centered design notes provide insights into the user's environment, actions, thoughts, and emotions. These notes help understand the user's perspective and tailor the conversation to their needs and preferences. Please summarize the user-centered design notes from the user's speaking transcript in a co-design workshop, and summarize the key points in the chatbot conversation. Based on the user-centered design notes, the chatbot can provide personalized recommendations and support to enhance the user experience. Please provide the user-centered design notes in the following format: {format_instructions}."
+system_message_text = "The user-centered design notes provide insights into the user's environment, actions, thoughts, and emotions. These notes help understand the user's perspective and tailor the conversation to their needs and preferences. Please summarize the user-centered design notes from the user's speaking transcript in a co-design workshop, and summarize the key points in the chatbot conversation. Based on the user-centered design notes, the chatbot can provide personalized recommendations and support to enhance the user experience. Please provide the user-centered design notes in the following format: {format_instructions}."
 
 # baseline_chatbot_prompt = ChatPromptTemplate.from_messages(
 #     [
@@ -81,15 +83,30 @@ system_message = "The user-centered design notes provide insights into the user'
 #         ("human", "{input}"),
 #     ]
 # )
+system_message = SystemMessagePromptTemplate(
+    prompt=PromptTemplate(
+        template=system_message_text,
+        partial_variables={
+            "format_instructions": notes_parser.get_format_instructions()
+        },
+    ),
+)
 
-baseline_chatbot_prompt = ChatPromptTemplate(
-    messages=[
+baseline_chatbot_prompt = ChatPromptTemplate.from_messages(
+    [
         system_message,
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
-    ],
-    partial_variables={"format_instructions": notes_parser.get_format_instructions()},
+    ]
 )
+# baseline_chatbot_prompt = ChatPromptTemplate(
+#     messages=[
+#         ("system", system_message),
+#         MessagesPlaceholder(variable_name="chat_history"),
+#         ("human", "{input}"),
+#     ],
+#     partial_variables={"format_instructions": notes_parser.get_format_instructions()},
+# )
 
 
 baseline_chatbot_chain = baseline_chatbot_prompt | langchain_llm
@@ -126,5 +143,5 @@ def summarize_messages(chain_input):
 
 chain_with_summarization = (
     RunnablePassthrough.assign(messages_summarized=summarize_messages)
-    | chain_with_message_history
+    | chain_with_message_history | notes_parser
 )

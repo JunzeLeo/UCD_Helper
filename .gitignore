@@ -1,3 +1,6 @@
+# langchain cache db
+.langchain_cache.db
+
 # exp_data
 exp_data/*
 
